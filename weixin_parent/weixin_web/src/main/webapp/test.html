@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>开始使用layui</title>
+    <link rel="stylesheet" href="layui/css/layui.css">
+</head>
+
+<body>
+
+<!-- 你的HTML代码 -->
+
+<script src="layui/layui.js"></script>
+<script type="text/javascript">
+
+    //一般直接写在一个js文件中
+    layui.use(['layer', 'form', 'jquery', 'element', 'upload'], function () {
+        var layer = layui.layer,
+            form = layui.form,
+            $ = layui.$,
+            ele = layui.element,
+            upload = layui.upload;
+
+        // 添加处理
+        (function (w) {
+            // 点击取消添加  关闭所属的父页面中的弹出层
+            $('#close').on('click', function () {
+                close()
+            });
+
+            // 确认添加
+            $('#sure').on('click', function () {
+                $.post('../user/add', $('#addfrom').serialize())
+                    .done(function (data) {
+                        if (data.flag) {
+                            tipInfo('msg', data.msg, 5);
+                            close()
+                        } else {
+                            tipInfo('msg', data.msg);
+                        }
+                    });
+            });
+
+            // 关闭弹出成
+            function close() {
+                //先得到当前iframe层的索引 那个页面用iframe层弹出了我。我就获取层的索引
+                var index = parent.layer.getFrameIndex(window.name);
+                parent.layer.close(index); //再执行关闭
+            }
+        }(window));
+
+        // 文件上传
+        (function (w) {
+            //执行实例
+            var uploadInst = upload.render({
+                elem: '#upload' //绑定元素
+                ,
+                url: '../../goods/upload' //上传接口
+                ,
+                size: 10240,
+                field: 'upload',
+                before: function (obj) {
+                    //将每次选择的文件追加到文件队列
+                    //var files = obj.pushFile();
+
+                    //预读本地文件，如果是多文件，则会遍历。(不支持ie8/9)
+                    obj.preview(function (index, file, result) {
+                        //console.log(index); //得到文件索引
+                        //console.log(file); //得到文件对象
+                        $('#upload-img>img').attr('src', '../../images/' + file.name);
+                        $('#upload-img').removeClass('layui-hide').addClass('layui-show');
+                        //console.log(result); //得到文件base64编码，比如图片
+
+                        //obj.resetFile(index, file, '123.jpg'); //重命名文件名，layui 2.3.0 开始新增
+
+                        //这里还可以做一些 append 文件列表 DOM 的操作
+
+                        //obj.upload(index, file); //对上传失败的单个文件重新上传，一般在某个事件中使用
+                        //delete files[index]; //删除列表中对应的文件，一般在某个事件中使用
+                    });
+                },
+                done: function (res) {
+                    if (res) {
+                        layer.msg('上传成功', {
+                            icon: 6,
+                            time: 2000,
+                            anim: 1
+                        })
+                    }
+                }
+            });
+        }(window))
+
+    });
+
+</script>
+
+</body>
+
+</html>

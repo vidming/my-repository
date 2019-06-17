@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>开始使用layui</title>
+    <link rel="stylesheet" href="webjars/layui/2.4.5/css/layui.css" th:href="@{/webjars/layui/2.4.5/css/layui.css}">
+    <style type="text/css">
+        .my-code {
+            width: 300px;
+            height: 300px;
+        }
+
+        .my-code img {
+            display: block;
+            width: 100%;
+        }
+
+        .my-container {
+            width: 100%;
+            padding-top: 25px;
+        }
+
+        #info {
+            width: 500px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+
+<ul class="layui-nav">
+    <li class="layui-nav-item">
+        <a href="">控制台<span class="layui-badge">9</span></a>
+    </li>
+    <li class="layui-nav-item">
+        <a href="">个人中心<span class="layui-badge-dot"></span></a>
+    </li>
+    <li class="layui-nav-item">
+        <a href=""><img src="//t.cn/RCzsdCq" class="layui-nav-img">我</a>
+        <dl class="layui-nav-child">
+            <dd>
+                <a href="javascript:;">修改信息</a>
+            </dd>
+            <dd>
+                <a href="javascript:;">安全管理</a>
+            </dd>
+            <dd>
+                <a href="#">退了</a>
+            </dd>
+        </dl>
+    </li>
+</ul>
+
+<div class="layui-fluid" style="margin-top: 20px">
+
+    <div class="layui-row">
+        <div class="layui-col-md4 my-code">
+            <img src="#" th:src="${codeUrl}" alt="">
+        </div>
+        <div class="layui-col-md8">
+            <table class="layui-table">
+                <thead>
+                <th>序号</th>
+                <th>用户昵称</th>
+                <th>图像</th>
+                <th>是否关注</th>
+                <th>关注时间</th>
+                <th colspan="2">操作</th>
+                </thead>
+                <tbody>
+                <tr th:each="user,vs : ${userList}">
+                    <td th:text="${vs.index + 1}">贤心</td>
+                    <td class="user-nickname" th:text="${user.nickname}"></td>
+                    <td><img src="#" alt="" th:src="${user.headimgurl}" style="width: 40px;"></td>
+                    <td th:text="${user.subscribe}"></td>
+                    <td th:text="${user.subscribe_time}">贤心</td>
+                    <td style="text-align: center">
+                        <input type="hidden" name="openid" th:value="${user.openid}">
+                        <a href="#" class="layui-btn layui-btn-xs btn-detail">了解详情</a>
+                    </td>
+                    <td style="text-align: center">
+                        <input type="hidden" name="openid" th:value="${user.openid}">
+                        <a href="#" class="layui-btn layui-btn-xs btn-msg">发送消息</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--发送消息弹框-->
+<div class="layui-hide layui-container my-container layui-form" lay-filter="detailInfo" id="detailInfo">
+    <form class="layui-form layui-form-pane" lay-filter="initValue" id="info">
+        <div class="layui-form-item layui-row">
+            <div class="layui-col-sm12">
+                <label class="layui-form-label">昵称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="userNickName" placeholder="昵称" autocomplete="off" class="layui-input"
+                           readonly>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item layui-row">
+            <div class="layui-col-sm12">
+                <label class="layui-form-label">消息类型</label>
+                <div class="layui-input-block">
+                    <select name="status">
+                        <option value=""></option>
+                        <option value="1">文本</option>
+                        <option value="2">图片</option>
+                        <option value="3">语音</option>
+                        <option value="4">视频</option>
+                        <option value="5">音乐</option>
+                        <option value="6">图文</option>
+                        <option value="7">菜单</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item layui-form-text layui-row">
+            <div class="layui-col-sm12">
+                <label class="layui-form-label">备注</label>
+                <textarea name="msg" placeholder="消息" class="layui-textarea"></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item login-btn layui-row">
+            <div class="layui-col-sm3 layui-col-sm-offset3">
+                <button type="button" class="layui-btn" id="sure">确认</button>
+            </div>
+            <div class="layui-col-sm3 layui-col-sm-offset1">
+                <button type="button" class="layui-btn" id="close">取消</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<script src="webjars/layui/2.4.5/layui.js" th:src="@{/webjars/layui/2.4.5/layui.js}"></script>
+<script type="text/javascript">
+
+    //一般直接写在一个js文件中
+    layui.use(['table', 'form', 'layer', 'jquery', 'element', 'laytpl'], function () {
+        var table = layui.table
+            , layer = layui.layer
+            , $ = layui.jquery
+            , laytpl = layui.laytpl
+            , ele = layui.element;
+
+        // 弹出框的操作
+        (function (w) {
+
+            var lock = false;
+
+            $(".btn-msg").on("click", function () {
+                var openid = $(this).prev("input[name='openid']").val();
+                var nickname = $(".user-nickname").eq($(".btn-msg").index($(this))).html();
+                var index = layer.open({
+                    type: 1,
+                    title: "发送消息给 " + nickname,
+                    content: $("#detailInfo"),
+                    shadeClose: true,
+                    offset: '100px',
+                    area: ["550px", "400px"],
+                    success: function (layero, index) {
+                        $("#detailInfo").removeClass("layui-hide").addClass("layui-show");
+                        $("input[name='userNickName']").val(nickname);
+                        /*form.val("initValue", {
+                            "userNickName": nickname
+                        });*/
+                        //form.render(null, "detailInfo");
+                    },
+                    end: function () {
+                        $("#detailInfo").removeClass("layui-show").addClass("layui-hide");
+                    }
+                });
+
+                if (!lock) {
+                    lock = true;
+                    // 确认发送消息
+                    $("#sure").on("click", function () {
+                        // 获取发送的消息
+                        var msgContent = $("textarea[name='msg']").val();
+                        $.post("../msg/sendTextMsg", {openid: openid, msgContent: msgContent})
+                            .done(function (result) {
+                                if (result === true) {
+                                    layer.close(index);
+                                    layer.msg("消息发送成功", {
+                                        icon: 6,
+                                        offset: '100px',
+                                        anim: 1
+                                    });
+                                } else {
+                                    layer.close(index);
+                                    layer.msg("消息发送失败，请联系管理员", {
+                                        icon: 5,
+                                        offset: '100px',
+                                        anim: 1
+                                    });
+                                }
+                            });
+
+                    });
+                    // 取消发送消息
+                    $('#close').on("click", function () {
+                        layer.close(index);
+                    })
+                }
+            });
+
+
+        }(window));
+    });
+
+</script>
+</body>
+
+</html>
